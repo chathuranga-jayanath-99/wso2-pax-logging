@@ -180,6 +180,11 @@ public class LogbackBuiltinAppendersIntegrationTest extends AbstractStdoutInterc
         t.start();
 
         latch1.await(5, TimeUnit.SECONDS);
+        // ServerSocketAppender accepts the connection, then registers the client
+        // on its own internal executor thread (a separate hop after accept()) -
+        // logging before that registration finishes silently drops the event
+        // for this client, so give it a moment to catch up.
+        Thread.sleep(1000);
         Logger log = LoggerFactory.getLogger("my.logger");
         log.info("socket message");
         latch3.countDown();
